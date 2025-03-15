@@ -3,7 +3,7 @@
 import type { ChatRequestOptions, Message } from 'ai';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { DocumentToolCall, DocumentToolResult } from './document';
 import { PencilEditIcon, SparklesIcon } from './icons';
@@ -18,6 +18,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
+import { WebSearchSources } from './web-search-sources';
+
+// Add a type for sources
+interface Source {
+  title: string;
+  url: string;
+  snippet?: string;
+}
 
 const PurePreviewMessage = ({
   chatId,
@@ -27,6 +35,7 @@ const PurePreviewMessage = ({
   setMessages,
   reload,
   isReadonly,
+  sources,
 }: {
   chatId: string;
   message: Message;
@@ -39,6 +48,7 @@ const PurePreviewMessage = ({
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
   isReadonly: boolean;
+  sources?: Source[];
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
@@ -120,6 +130,11 @@ const PurePreviewMessage = ({
                   })}
                 >
                   <Markdown>{message.content as string}</Markdown>
+                  
+                  {/* Display web search sources if available */}
+                  {message.role === 'assistant' && sources && sources.length > 0 && (
+                    <WebSearchSources sources={sources} />
+                  )}
                 </div>
               </div>
             )}

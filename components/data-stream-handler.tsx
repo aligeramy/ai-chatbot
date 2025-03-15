@@ -1,7 +1,7 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { artifactDefinitions, ArtifactKind } from './artifact';
 import { Suggestion } from '@/lib/db/schema';
 import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
@@ -17,14 +17,22 @@ export type DataStreamDelta = {
     | 'suggestion'
     | 'clear'
     | 'finish'
-    | 'kind';
-  content: string | Suggestion;
+    | 'kind'
+    | 'sources';
+  content: string | Suggestion | Array<{ title: string; url: string; snippet?: string }>;
 };
 
+export interface Source {
+  title: string;
+  url: string;
+  snippet?: string;
+}
+
 export function DataStreamHandler({ id }: { id: string }) {
-  const { data: dataStream } = useChat({ id });
+  const { data: dataStream, setMessages } = useChat({ id });
   const { artifact, setArtifact, setMetadata } = useArtifact();
   const lastProcessedIndex = useRef(-1);
+  const [sources, setSources] = useState<Source[]>([]);
 
   useEffect(() => {
     if (!dataStream?.length) return;
@@ -42,6 +50,29 @@ export function DataStreamHandler({ id }: { id: string }) {
           streamPart: delta,
           setArtifact,
           setMetadata,
+        });
+      }
+
+      if (delta.type === 'sources') {
+        const sourcesData = delta.content as Source[];
+        setSources(sourcesData);
+        
+        setMessages((messages) => {
+          const lastAssistantMessageIndex = [...messages].reverse().findIndex(
+            (m) => m.role === 'assistant'
+          );
+          
+          if (lastAssistantMessageIndex !== -1) {
+            const actualIndex = messages.length - 1 - lastAssistantMessageIndex;
+            const updatedMessages = [...messages];
+            updatedMessages[actualIndex] = {
+              ...updatedMessages[actualIndex],
+              sources: sourcesData,
+            };
+            return updatedMessages;
+          }
+          
+          return messages;
         });
       }
 
@@ -90,7 +121,7 @@ export function DataStreamHandler({ id }: { id: string }) {
         }
       });
     });
-  }, [dataStream, setArtifact, setMetadata, artifact]);
+  }, [dataStream, setArtifact, setMetadata, artifact, setMessages]);
 
   return null;
 }

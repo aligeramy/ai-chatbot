@@ -5,6 +5,7 @@ import {
 } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { fireworks } from '@ai-sdk/fireworks';
+import { deepseek } from '@ai-sdk/deepseek';
 import { isTestEnvironment } from '../constants';
 import {
   artifactModel,
@@ -19,6 +20,7 @@ export const myProvider = isTestEnvironment
         'chat-model-small': chatModel,
         'chat-model-large': chatModel,
         'chat-model-reasoning': reasoningModel,
+        'chat-model-web-search': chatModel,
         'title-model': titleModel,
         'artifact-model': artifactModel,
       },
@@ -28,9 +30,10 @@ export const myProvider = isTestEnvironment
         'chat-model-small': openai('gpt-4o-mini'),
         'chat-model-large': openai('gpt-4o'),
         'chat-model-reasoning': wrapLanguageModel({
-          model: fireworks('accounts/fireworks/models/deepseek-r1'),
+          model: deepseek('deepseek-reasoner'),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
+        'chat-model-web-search': openai.responses('gpt-4o'),
         'title-model': openai('gpt-4-turbo'),
         'artifact-model': openai('gpt-4o-mini'),
       },

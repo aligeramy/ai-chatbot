@@ -75,6 +75,25 @@ export const VercelIcon = ({ size = 17 }) => {
   );
 };
 
+export const ProjectHubIcon = ({ size = 17 }) => {
+  return (
+    <svg
+      height={size}
+      strokeLinejoin="round"
+      viewBox="0 0 16 16"
+      width={size}
+      style={{ color: 'currentcolor' }}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M8 1C4.13401 1 1 4.13401 1 8C1 11.866 4.13401 15 8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1ZM3.5 8C3.5 5.51472 5.51472 3.5 8 3.5C10.4853 3.5 12.5 5.51472 12.5 8C12.5 10.4853 10.4853 12.5 8 12.5C5.51472 12.5 3.5 10.4853 3.5 8ZM8 5.5C6.61929 5.5 5.5 6.61929 5.5 8C5.5 9.38071 6.61929 10.5 8 10.5C9.38071 10.5 10.5 9.38071 10.5 8C10.5 6.61929 9.38071 5.5 8 5.5Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+};
+
 export const GitIcon = () => {
   return (
     <svg
@@ -1167,6 +1186,25 @@ export const WarningIcon = ({ size = 16 }: { size?: number }) => {
         fillRule="evenodd"
         clipRule="evenodd"
         d="M8.55846 0.5C9.13413 0.5 9.65902 0.829456 9.90929 1.34788L15.8073 13.5653C16.1279 14.2293 15.6441 15 14.9068 15H1.09316C0.355835 15 -0.127943 14.2293 0.192608 13.5653L6.09065 1.34787C6.34092 0.829454 6.86581 0.5 7.44148 0.5H8.55846ZM8.74997 4.75V5.5V8V8.75H7.24997V8V5.5V4.75H8.74997ZM7.99997 12C8.55226 12 8.99997 11.5523 8.99997 11C8.99997 10.4477 8.55226 10 7.99997 10C7.44769 10 6.99997 10.4477 6.99997 11C6.99997 11.5523 7.44769 12 7.99997 12Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+};
+
+export const LinkIcon = ({ size = 16 }: { size?: number }) => {
+  return (
+    <svg
+      height={size}
+      strokeLinejoin="round"
+      viewBox="0 0 16 16"
+      width={size}
+      style={{ color: 'currentcolor' }}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M7.5 4H5.5C4.39543 4 3.5 4.89543 3.5 6V10C3.5 11.1046 4.39543 12 5.5 12H9.5C10.6046 12 11.5 11.1046 11.5 10V8H10V10C10 10.2761 9.77614 10.5 9.5 10.5H5.5C5.22386 10.5 5 10.2761 5 10V6C5 5.72386 5.22386 5.5 5.5 5.5H7.5V4ZM8.5 2H12.5C12.7761 2 13 2.22386 13 2.5V6.5C13 6.77614 12.7761 7 12.5 7H10.5V5.5H11.5V3.5H9.5V4.5H8.5V2Z"
         fill="currentColor"
       />
     </svg>

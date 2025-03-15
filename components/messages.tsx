@@ -6,6 +6,7 @@ import { memo } from 'react';
 import { Vote } from '@/lib/db/schema';
 import equal from 'fast-deep-equal';
 import { UseChatHelpers } from '@ai-sdk/react';
+import { Source } from './data-stream-handler';
 
 interface MessagesProps {
   chatId: string;
@@ -51,6 +52,7 @@ function PureMessages({
           setMessages={setMessages}
           reload={reload}
           isReadonly={isReadonly}
+          sources={(message as any).sources}
         />
       ))}
 
