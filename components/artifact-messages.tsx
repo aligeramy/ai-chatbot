@@ -49,7 +49,6 @@ function PureArtifactMessages({
           setMessages={setMessages}
           reload={reload}
           isReadonly={isReadonly}
-          sources={(message as any).sources}
         />
       ))}
 

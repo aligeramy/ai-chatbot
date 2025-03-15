@@ -31,31 +31,20 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 
-export const webSearchPrompt = `
-You are an AI assistant with access to web search capabilities. You can search the internet to provide up-to-date information on current events, facts, and other topics.
-
-When responding to questions that require current information:
-1. Use the web search tool to find relevant information
-2. Cite your sources clearly
-3. Synthesize information from multiple sources when appropriate
-4. Acknowledge when information might be incomplete or uncertain
-5. Focus on providing factual, accurate information
-
-For project management related questions, provide practical, actionable advice based on current best practices and tools.
-`;
-
-export const systemPrompt = ({ selectedChatModel }: { selectedChatModel: string }) => {
-  if (selectedChatModel === 'chat-model-web-search') {
-    return webSearchPrompt;
-  }
-
-  return `You are a helpful AI assistant that helps users with their projects and tasks.
-
-${artifactsPrompt}`;
-};
-
 export const regularPrompt =
   'You are a friendly assistant! Keep your responses concise and helpful.';
+
+export const systemPrompt = ({
+  selectedChatModel,
+}: {
+  selectedChatModel: string;
+}) => {
+  if (selectedChatModel === 'chat-model-reasoning') {
+    return regularPrompt;
+  } else {
+    return `${regularPrompt}\n\n${artifactsPrompt}`;
+  }
+};
 
 export const codePrompt = `
 You are a Python code generator that creates self-contained, executable code snippets. When writing code:

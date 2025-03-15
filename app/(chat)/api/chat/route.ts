@@ -25,8 +25,6 @@ import { getWeather } from '@/lib/ai/tools/get-weather';
 import { isProductionEnvironment } from '@/lib/constants';
 import { NextResponse } from 'next/server';
 import { myProvider } from '@/lib/ai/providers';
-import { openai } from '@ai-sdk/openai';
-import { webSearch } from '@/lib/ai/tools/web-search';
 
 export const maxDuration = 60;
 
@@ -74,127 +72,66 @@ export async function POST(request: Request) {
 
     return createDataStreamResponse({
       execute: (dataStream) => {
-        // Special handling for web search model
-        if (selectedChatModel === 'chat-model-web-search') {
-          const result = streamText({
-            model: myProvider.languageModel(selectedChatModel),
-            system: systemPrompt({ selectedChatModel }),
-            messages,
-            maxSteps: 5,
-            experimental_transform: smoothStream({ chunking: 'word' }),
-            experimental_generateMessageId: generateUUID,
-            tools: {
-              ...webSearch({
-                searchContextSize: 'high',
-                userLocation: {
-                  type: 'approximate',
-                  city: 'San Francisco',
-                  region: 'California',
-                },
-              }),
-            },
-            onFinish: async ({ response, reasoning, sources }) => {
-              if (session.user?.id) {
-                try {
-                  const sanitizedResponseMessages = sanitizeResponseMessages({
-                    messages: response.messages,
-                    reasoning,
-                  });
+        const result = streamText({
+          model: myProvider.languageModel(selectedChatModel),
+          system: systemPrompt({ selectedChatModel }),
+          messages,
+          maxSteps: 5,
+          experimental_activeTools:
+            selectedChatModel === 'chat-model-reasoning'
+              ? []
+              : [
+                  'getWeather',
+                  'createDocument',
+                  'updateDocument',
+                  'requestSuggestions',
+                ],
+          experimental_transform: smoothStream({ chunking: 'word' }),
+          experimental_generateMessageId: generateUUID,
+          tools: {
+            getWeather,
+            createDocument: createDocument({ session, dataStream }),
+            updateDocument: updateDocument({ session, dataStream }),
+            requestSuggestions: requestSuggestions({
+              session,
+              dataStream,
+            }),
+          },
+          onFinish: async ({ response, reasoning }) => {
+            if (session.user?.id) {
+              try {
+                const sanitizedResponseMessages = sanitizeResponseMessages({
+                  messages: response.messages,
+                  reasoning,
+                });
 
-                  // Save the sources if available
-                  if (sources && sources.length > 0) {
-                    dataStream.writeData({
-                      type: 'sources',
-                      content: sources,
-                    });
-                  }
-
-                  await saveMessages({
-                    messages: sanitizedResponseMessages.map((message) => {
-                      return {
-                        id: message.id,
-                        chatId: id,
-                        role: message.role,
-                        content: message.content,
-                        createdAt: new Date(),
-                      };
-                    }),
-                  });
-                } catch (error) {
-                  console.error('Failed to save chat');
-                }
+                await saveMessages({
+                  messages: sanitizedResponseMessages.map((message) => {
+                    return {
+                      id: message.id,
+                      chatId: id,
+                      role: message.role,
+                      content: message.content,
+                      createdAt: new Date(),
+                    };
+                  }),
+                });
+              } catch (error) {
+                console.error('Failed to save chat');
               }
-            },
-            experimental_telemetry: {
-              isEnabled: isProductionEnvironment,
-              functionId: 'stream-text-web-search',
-            },
-          });
+            }
+          },
+          experimental_telemetry: {
+            isEnabled: isProductionEnvironment,
+            functionId: 'stream-text',
+          },
+        });
 
-          result.mergeIntoDataStream(dataStream, {
-            sendReasoning: true,
-          });
-        } else {
-          // Original implementation for other models
-          const result = streamText({
-            model: myProvider.languageModel(selectedChatModel),
-            system: systemPrompt({ selectedChatModel }),
-            messages,
-            maxSteps: 5,
-            experimental_activeTools:
-              selectedChatModel === 'chat-model-reasoning'
-                ? []
-                : [
-                    'getWeather',
-                    'createDocument',
-                    'updateDocument',
-                    'requestSuggestions',
-                  ],
-            experimental_transform: smoothStream({ chunking: 'word' }),
-            experimental_generateMessageId: generateUUID,
-            tools: {
-              getWeather,
-              createDocument: createDocument({ session, dataStream }),
-              updateDocument: updateDocument({ session, dataStream }),
-              requestSuggestions: requestSuggestions({
-                session,
-                dataStream,
-              }),
-            },
-            onFinish: async ({ response, reasoning }) => {
-              if (session.user?.id) {
-                try {
-                  const sanitizedResponseMessages = sanitizeResponseMessages({
-                    messages: response.messages,
-                    reasoning,
-                  });
+        result.consumeStream();
 
-                  await saveMessages({
-                    messages: sanitizedResponseMessages.map((message) => {
-                      return {
-                        id: message.id,
-                        chatId: id,
-                        role: message.role,
-                        content: message.content,
-                        createdAt: new Date(),
-                      };
-                    }),
-                  });
-                } catch (error) {
-                  console.error('Failed to save chat');
-                }
-              }
-            },
-            experimental_telemetry: {
-              isEnabled: isProductionEnvironment,
-              functionId: 'stream-text',
-            },
-          });
-
-          result.mergeIntoDataStream(dataStream, {
-            sendReasoning: true,
-          });
-        }
+        result.mergeIntoDataStream(dataStream, {
+          sendReasoning: true,
+        });
       },
       onError: () => {
         return 'Oops, an error occured!';
